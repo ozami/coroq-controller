@@ -26,8 +26,8 @@ class Controller {
     $this->response = @$options["response"] ?: $this->makeResponse();
     $this->router = @$options["router"] ?: $this->makeRouter();
     $this->action_flow_maker = @$options["action_flow_maker"] ?: $this->makeActionFlowMaker();
-    $this->dispatcher = $options["dispatcher"] ?: $this->makeDispatcher();
-    $this->response_emitter = $options["response_emitter"] ?: $this->makeResponseEmitter();
+    $this->dispatcher = @$options["dispatcher"] ?: $this->makeDispatcher();
+    $this->response_emitter = @$options["response_emitter"] ?: $this->makeResponseEmitter();
   }
 
   public function __invoke(array $arguments): array {
