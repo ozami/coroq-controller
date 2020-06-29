@@ -1,85 +1,66 @@
 <?php
 namespace Coroq;
+use Psr\Http\Message\RequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
 
 class Controller {
   protected $map;
-  protected $dead_end_action;
+  /** @var string */
+  protected $request_index;
+  /** @var string */
+  protected $response_index;
+  /** @var Request */
+  protected $request;
+  /** @var Response */
+  protected $response;
+  protected $router;
+  protected $action_flow_maker;
+  protected $dispatcher;
+  protected $response_emitter;
 
-  public function __construct(array $map, $dead_end_action) {
+  public function __construct(array $map, array $options = []) {
     $this->map = $map;
-    $this->dead_end_action = $dead_end_action;
+    $this->request_index = @$options["request_index"] ?: "request";
+    $this->response_index = @$options["response_index"] ?: "response";
+    $this->request = @$options["request"] ?: $this->makeRequest();
+    $this->response = @$options["response"] ?: $this->makeResponse();
+    $this->router = @$options["router"] ?: $this->makeRouter();
+    $this->action_flow_maker = @$options["action_flow_maker"] ?: $this->makeActionFlowMaker();
+    $this->dispatcher = $options["dispatcher"] ?: $this->makeDispatcher();
+    $this->response_emitter = $options["response_emitter"] ?: $this->makeResponseEmitter();
   }
 
-  public function __invoke(array $arguments) {
-    $arguments = $this->makeRequest($arguments);
-    $arguments = $this->makeResponse($arguments);
-    $route = $this->route($arguments);
-    $action_flow = $this->makeActionFlow($route, $arguments);
-    $arguments = $this->dispatch($action_flow, $arguments);
-    $this->emitResponse($arguments);
+  public function __invoke(array $arguments): array {
+    $route = $this->router->route($this->request, $this->map);
+    $action_flow = $this->action_flow_maker->make($route);
+    $arguments[$this->request_index] = $this->request;
+    $arguments[$this->response_index] = $this->response;
+    $arguments = $this->dispatcher->dispatch($action_flow, $arguments) + $arguments;
+    $this->response_emitter->emit($arguments[$this->response_index]);
     return $arguments;
   }
 
-  protected function getRequest(array $arguments) {
-    return $arguments["request"];
+  protected function makeRequest(): Request {
+    return \Laminas\Diactoros\ServerRequestFactory::fromGlobals();
   }
 
-  protected function makeRequest(array $arguments) {
-    $request = \Laminas\Diactoros\ServerRequestFactory::fromGlobals();
-    return compact("request");
+  protected function makeResponse(): Response {
+    return new \Laminas\Diactoros\Response();
   }
 
-  protected function getResponse(array $arguments) {
-    return $arguments["response"];
-  }
-
-  protected function makeResponse(array $arguments) {
-    $response = new \Laminas\Diactoros\Response();
-    return compact("response");
-  }
-
-  protected function route(array $arguments) {
-    $waypoints = $this->getRouteWaypoints($arguments);
-    $router = $this->makeRouter($arguments);
-    return $router->route($waypoints, $this->map, $this->dead_end_action);
-  }
-
-  protected function getRouteWaypoints(array $arguments) {
-    $request = $this->getRequest($arguments);
-    $path = $request->getPath();
-    $waypoints = array_diff(explode("/", ltrim($path, "/")), [""]);
-    return $waypoints;
-  }
-
-  protected function makeRouter(array $arguments) {
+  protected function makeRouter() {
     return new Controller\Router();
   }
 
-  protected function makeActionFlow($route, array $arguments) {
-    $action_flow_maker = $this->makeActionFlowMaker($arguments);
-    return $action_flow_maker->make($route);
-  }
-
-  protected function makeActionFlowMaker(array $arguments) {
+  protected function makeActionFlowMaker() {
     return new Controller\ActionFlowMaker();
   }
 
-  protected function dispatch(Flow $action_flow, array $arguments) {
-    $dispatcher = $this->makeDispatcher($arguments);
-    return $dispatcher->dispatch($action_flow, $arguments);
+  protected function makeDispatcher() {
+    return new Controller\Dispatcher($this->response_index);
   }
 
-  protected function makeDispatcher(array $arguments) {
-    return new Controller\Dispatcher();
-  }
-
-  protected function emitResponse(array $arguments) {
-    $response = $this->getResponse($arguments);
-    $emitter = $this->makeResponseEmitter($arguments);
-    $emitter->emit($response);
-  }
-
-  protected function makeResponseEmitter(array $arguments) {
+  protected function makeResponseEmitter() {
     return new Controller\ResponseEmitter();
   }
 }

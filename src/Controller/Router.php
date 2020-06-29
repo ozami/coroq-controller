@@ -1,12 +1,20 @@
 <?php
 namespace Coroq\Controller;
+use Psr\Http\Message\RequestInterface as Request;
 
 class Router {
-  public function route(array $waypoints, array $map, $dead_end_action) {
-    return $this->routeHelper([], $waypoints, $map, $dead_end_action);
+  public function route(Request $request, array $map): array {
+    $waypoints = $this->getWaypoints($request);
+    return $this->routeHelper([], $waypoints, $map);
   }
 
-  protected function routeHelper(array $route, array $waypoints, array $map, $dead_end_action) {
+  protected function getWaypoints(Request $request): array {
+    $path = $request->getUri()->getPath();
+    $waypoints = array_diff(explode("/", ltrim($path, "/")), [""]);
+    return $waypoints;
+  }
+
+  protected function routeHelper(array $route, array $waypoints, array $map): array {
     $next_waypoint = @$waypoints[0];
     foreach ($map as $map_index => $map_item) {
       if (preg_match('#^\d+$#', "$map_index")) {
@@ -15,16 +23,16 @@ class Router {
       }
       if (preg_match("|^[/#]|", "$map_index")) {
         if (preg_match($map_index, $next_waypoint)) {
-          return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item, $dead_end_action);
+          return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item);
         }
         continue;
       }
       if ($map_index == $next_waypoint) {
-        return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item, $dead_end_action);
+        return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item);
       }
     }
     if ($waypoints) {
-      return [$dead_end_action];
+      return [];
     }
     return $route;
   }

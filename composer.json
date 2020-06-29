@@ -21,7 +21,7 @@
     },
     "scripts": {
         "phan": "@php -n -d extension=ast.so -d extension=json.so -d extension=tokenizer.so vendor/bin/phan --no-progress-bar || :",
-        "test": "@php vendor/bin/phpunit --bootstrap test/bootstrap.php test/"
+        "test": "@php vendor/bin/phpunit test/"
     },
     "autoload": {
         "psr-4": {
