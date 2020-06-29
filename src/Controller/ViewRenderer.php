@@ -21,4 +21,8 @@ class ViewRenderer {
       throw $error;
     }
   }
+
+  public function __invoke(string $template_name, array $arguments): string {
+    return $this->render($template_name, $arguments);
+  }
 }
