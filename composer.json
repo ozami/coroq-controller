@@ -12,7 +12,7 @@
         "php": ">=7.2",
         "lib-pcre": "*",
         "psr/http-message": "^1.0",
-        "coroq/flow": "^6.0",
+        "coroq/flow": "^6.1",
         "laminas/laminas-diactoros": "^2.3"
     },
     "require-dev": {

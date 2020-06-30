@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "67c23675c62a20493ba6aa637f4a1757",
+    "content-hash": "b53290b408bc1d01423c2e03bce8c55a",
     "packages": [
         {
             "name": "coroq/flow",
-            "version": "v6.0.0",
+            "version": "v6.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ozami/coroq-flow.git",
-                "reference": "a7893e056729040cf2a9ebd8fbad783e0fab6020"
+                "reference": "35aca5fdfcc9a31cd697046cad653ebece4b1b0c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ozami/coroq-flow/zipball/a7893e056729040cf2a9ebd8fbad783e0fab6020",
-                "reference": "a7893e056729040cf2a9ebd8fbad783e0fab6020",
+                "url": "https://api.github.com/repos/ozami/coroq-flow/zipball/35aca5fdfcc9a31cd697046cad653ebece4b1b0c",
+                "reference": "35aca5fdfcc9a31cd697046cad653ebece4b1b0c",
                 "shasum": ""
             },
             "require": {
@@ -43,7 +43,7 @@
                     "email": "ozawa@coroq.com"
                 }
             ],
-            "time": "2020-04-04T12:57:11+00:00"
+            "time": "2020-05-18T16:07:18+00:00"
         },
         {
             "name": "laminas/laminas-diactoros",
