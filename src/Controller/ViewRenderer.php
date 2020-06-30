@@ -9,7 +9,7 @@ class ViewRenderer {
     $this->template_directory = $template_directory;
   }
 
-  public function render(string $__template_name, array $__arguments): string {
+  public function render(string $__template_name, array $__arguments = []): string {
     try {
       ob_start();
       extract($__arguments);
@@ -22,7 +22,7 @@ class ViewRenderer {
     }
   }
 
-  public function __invoke(string $template_name, array $arguments): string {
+  public function __invoke(string $template_name, array $arguments = []): string {
     return $this->render($template_name, $arguments);
   }
 }
