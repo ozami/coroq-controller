@@ -27,7 +27,8 @@ class Controller {
 
   public function __invoke(array $arguments): array {
     $request = $this->makeRequest();
-    $route = $this->router->route($request);
+    $router = $this->makeRouter();
+    $route = $router->route($request);
     $action_flow_maker = $this->makeActionFlowMaker();
     $action_flow = $action_flow_maker->make($route);
     $arguments[$this->request_index] = $request;
