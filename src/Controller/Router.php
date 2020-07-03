@@ -3,9 +3,16 @@ namespace Coroq\Controller;
 use Psr\Http\Message\RequestInterface as Request;
 
 class Router {
-  public function route(Request $request, array $map): array {
+  /** @var array */
+  protected $map;
+
+  public function __construct(array $map) {
+    $this->map = $map;
+  }
+
+  public function route(Request $request): array {
     $waypoints = $this->getWaypoints($request);
-    return $this->routeHelper([], $waypoints, $map);
+    return $this->routeHelper([], $waypoints, $this->map);
   }
 
   protected function getWaypoints(Request $request): array {

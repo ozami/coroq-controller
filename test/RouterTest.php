@@ -10,32 +10,31 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
   }
 
   public function testRoot() {
-    $router = new Router();
-    $result = $router->route($this->makeRequest(""), ["" => "root"]);
+    $router = new Router(["" => "root"]);
+    $result = $router->route($this->makeRequest(""));
     $this->assertEquals(["root"], $result);
   }
 
   public function testNamedMapItem() {
-    $router = new Router();
-    $result = $router->route($this->makeRequest("/abc"), ["" => "root", "abc" => "ABC"]);
+    $router = new Router(["" => "root", "abc" => "ABC"]);
+    $result = $router->route($this->makeRequest("/abc"));
     $this->assertEquals(["ABC"], $result);
   }
 
   public function testNumericMapIndex() {
-    $router = new Router();
-    $result = $router->route($this->makeRequest("/"), ["first", "" => "root", "last"]);
+    $router = new Router(["first", "" => "root", "last"]);
+    $result = $router->route($this->makeRequest("/"));
     $this->assertEquals(["first", "root"], $result);
   }
 
   public function testDeadEnd() {
-    $router = new Router();
-    $result = $router->route($this->makeRequest("/not_exists"), ["first", "" => "root", "last"]);
+    $router = new Router(["first", "" => "root", "last"]);
+    $result = $router->route($this->makeRequest("/not_exists"));
     $this->assertEquals([], $result);
   }
 
   public function testDeepMap() {
-    $router = new Router();
-    $map = [
+    $router = new Router([
       "1st",
       "2nd",
       "flower" => [
@@ -59,14 +58,13 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
         ],
       ],
       "out",
-    ];
-    $result = $router->route($this->makeRequest("leaf/of/the/tall/tree"), $map);
+    ]);
+    $result = $router->route($this->makeRequest("leaf/of/the/tall/tree"));
     $this->assertEquals(["1st", "2nd", "3rd", "4th", "5th", "6th", "last"], $result);
   }
 
   public function testDeepMapDeadEnd() {
-    $router = new Router();
-    $map = [
+    $router = new Router([
       "1st",
       "2nd",
       "flower" => [
@@ -90,8 +88,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
         ],
       ],
       "out",
-    ];
-    $result = $router->route($this->makeRequest("leaf/of/the/tall/tree"), $map);
+    ]);
+    $result = $router->route($this->makeRequest("leaf/of/the/tall/tree"));
     $this->assertEquals([], $result);
   }
 }
