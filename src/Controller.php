@@ -4,8 +4,6 @@ use Psr\Http\Message\RequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 
 class Controller {
-  /** @var array */
-  public $routing_map;
   /** @var string */
   public $request_index;
   /** @var string */
@@ -14,12 +12,18 @@ class Controller {
   public $request;
   /** @var Response */
   public $response;
+  public $request_rewriter;
+  /** @var array */
+  public $request_rewrite_rules;
   public $router;
+  /** @var array */
+  public $routing_map;
   public $action_flow_maker;
   public $dispatcher;
   public $response_emitter;
 
   public function __construct() {
+    $this->request_rewrite_rules = [];
     $this->routing_map = [];
     $this->request_index = "request";
     $this->response_index = "response";
@@ -27,8 +31,9 @@ class Controller {
 
   public function __invoke(array $arguments): array {
     $request = $this->makeRequest();
-    $router = $this->makeRouter();
-    $route = $router->route($request);
+    $request_rewriter = $this->makeRequestRewriter();
+    $request = $request_rewriter->rewrite($request);
+    $route = $this->router->route($request);
     $action_flow_maker = $this->makeActionFlowMaker();
     $action_flow = $action_flow_maker->make($route);
     $arguments[$this->request_index] = $request;
@@ -46,6 +51,10 @@ class Controller {
 
   protected function makeResponse(): Response {
     return $this->response ?: new \Laminas\Diactoros\Response();
+  }
+
+  protected function makeRequestRewriter() {
+    return $this->request_rewriter ?: new Controller\RequestRewriter($this->request_rewrite_rules);
   }
 
   protected function makeRouter() {
