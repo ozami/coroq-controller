@@ -92,4 +92,17 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
     $result = $router->route($this->makeRequest("leaf/of/the/tall/tree"));
     $this->assertEquals([], $result);
   }
+
+  public function testDefaultClassName() {
+    $router = new Router([
+      "::no_class_name",
+      "abc" => [
+        "SomeClass::",
+        "::method1",
+        "def" => "::method2",
+      ],
+    ]);
+    $result = $router->route($this->makeRequest("/abc/def"));
+    $this->assertEquals(["::no_class_name", "SomeClass::method1", "SomeClass::method2"], $result);
+  }
 }

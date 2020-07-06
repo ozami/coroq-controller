@@ -23,9 +23,14 @@ class Router {
 
   protected function routeHelper(array $route, array $waypoints, array $map): array {
     $next_waypoint = @$waypoints[0];
+    $default_class_name = "";
     foreach ($map as $map_index => $map_item) {
       if (preg_match('#^\d+$#', "$map_index")) {
-        $route[] = $map_item;
+        if (preg_match('#(.+)::$#', $map_item, $matches)) {
+          $default_class_name = $matches[1];
+          continue;
+        }
+        $route[] = $this->resolveDefaultClassName($default_class_name, $map_item);
         continue;
       }
       if (preg_match("|^[/#]|", "$map_index")) {
@@ -35,12 +40,23 @@ class Router {
         continue;
       }
       if ($map_index == $next_waypoint) {
-        return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item);
+        if (is_array($map_item)) {
+          return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item);
+        }
+        $route[] = $this->resolveDefaultClassName($default_class_name, $map_item);
+        return $route;
       }
     }
     if ($waypoints) {
       return [];
     }
     return $route;
+  }
+
+  protected function resolveDefaultClassName($default_class_name, $map_item) {
+    if (substr($map_item, 0, 2) == "::") {
+      $map_item = "$default_class_name$map_item";
+    }
+    return $map_item;
   }
 }
