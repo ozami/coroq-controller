@@ -25,7 +25,7 @@ class PathToQuery {
         $query[$matches[1]] = urldecode($path_item);
         continue;
       }
-      if ($path_item == $format_item) {
+      if ($format_item === "" || $path_item == $format_item) {
         $new_path[] = $path_item;
         continue;
       }
