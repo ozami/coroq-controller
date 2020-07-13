@@ -43,6 +43,9 @@ class Router {
         if (is_array($map_item)) {
           return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item);
         }
+        if (preg_match('#::$#', $map_item)) {
+          $map_item .= $map_index;
+        }
         $route[] = $this->resolveDefaultClassName($default_class_name, $map_item);
         return $route;
       }
