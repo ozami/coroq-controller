@@ -33,7 +33,7 @@ class Dispatcher {
   }
 
   protected function handleRuntimeException(\RuntimeException $exception): array {
-    return $this->handleServiceUnavailable();
+    throw $exception;
   }
 
   protected function makeResponseFunctions(): void {
