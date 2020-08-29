@@ -21,8 +21,11 @@ class PathToQuery {
       if ($path_item === null) {
         return $request;
       }
-      if (preg_match('#^\{([a-z_][a-z0-9_]*)\}$#i', $format_item, $matches)) {
+      if (preg_match('#^\{([a-z_][a-z0-9_]*)(:.+?)?\}$#i', $format_item, $matches)) {
         $query[$matches[1]] = urldecode($path_item);
+        if (isset($matches[2])) {
+          $new_path[] = substr($matches[2], 1);
+        }
         continue;
       }
       if ($format_item === "" || $path_item == $format_item) {
