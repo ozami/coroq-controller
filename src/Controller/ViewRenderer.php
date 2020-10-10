@@ -25,4 +25,8 @@ class ViewRenderer {
   public function __invoke(string $template_name, array $arguments = []): string {
     return $this->render($template_name, $arguments);
   }
+
+  protected function include(string $template_name, array $arguments = []): void {
+    echo $this->render($template_name, $arguments);
+  }
 }
