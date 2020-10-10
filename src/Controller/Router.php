@@ -26,7 +26,7 @@ class Router {
     $default_class_name = "";
     foreach ($map as $map_index => $map_item) {
       if (preg_match('#^\d+$#', "$map_index")) {
-        if (preg_match('#(.+)::$#', $map_item, $matches)) {
+        if (is_string($map_item) && preg_match('#(.+)::$#', $map_item, $matches)) {
           $default_class_name = $matches[1];
           continue;
         }
@@ -57,8 +57,10 @@ class Router {
   }
 
   protected function resolveDefaultClassName($default_class_name, $map_item) {
-    if (substr($map_item, 0, 2) == "::") {
-      $map_item = "$default_class_name$map_item";
+    if (is_string($map_item)) {
+      if (substr($map_item, 0, 2) == "::") {
+        $map_item = "$default_class_name$map_item";
+      }
     }
     return $map_item;
   }
