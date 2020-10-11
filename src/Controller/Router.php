@@ -12,7 +12,7 @@ class Router {
 
   public function route(Request $request): array {
     $waypoints = $this->getWaypoints($request);
-    return $this->routeHelper([], $waypoints, $this->map);
+    return $this->routeHelper([], $waypoints, $this->map, "");
   }
 
   protected function getWaypoints(Request $request): array {
@@ -21,11 +21,13 @@ class Router {
     return $waypoints;
   }
 
-  protected function routeHelper(array $route, array $waypoints, array $map): array {
+  protected function routeHelper(array $route, array $waypoints, array $map, string $default_class_name): array {
     $next_waypoint = @$waypoints[0];
-    $default_class_name = "";
     foreach ($map as $map_index => $map_item) {
       if (preg_match('#^\d+$#', "$map_index")) {
+        if ($map_item == "*") {
+          return $route;
+        }
         if (is_string($map_item) && preg_match('#(.+)::$#', $map_item, $matches)) {
           $default_class_name = $matches[1];
           continue;
@@ -35,19 +37,15 @@ class Router {
       }
       if (preg_match("|^[/#]|", "$map_index")) {
         if (preg_match($map_index, $next_waypoint)) {
-          return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item);
+          return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item, $default_class_name);
         }
         continue;
       }
       if ($map_index == $next_waypoint) {
-        if (is_array($map_item)) {
-          return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item);
-        }
-        if (preg_match('#::$#', $map_item)) {
+        if (is_string($map_item) && preg_match('#::$#', $map_item)) {
           $map_item .= $map_index;
         }
-        $route[] = $this->resolveDefaultClassName($default_class_name, $map_item);
-        return $route;
+        return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item, $default_class_name);
       }
     }
     if ($waypoints) {
