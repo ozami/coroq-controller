@@ -113,6 +113,7 @@ class Controller {
     }
     $dispatcher = new Controller\Dispatcher($this->response_index);
     $dispatcher->setBasePath($this->base_path);
+    $dispatcher->setLogger($this->logger);
     return $dispatcher;
   }
 

@@ -2,6 +2,7 @@
 namespace Coroq\Controller;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\StreamInterface;
+use Psr\Log\LoggerInterface as Logger;
 
 class Dispatcher {
   /** @var string */
@@ -10,6 +11,8 @@ class Dispatcher {
   protected $arguments;
   /** @var string */
   protected $base_path;
+  /** @var Logger */
+  protected $logger;
 
   public function __construct(string $response_index = "response") {
     $this->response_index = $response_index;
@@ -18,6 +21,10 @@ class Dispatcher {
 
   public function setBasePath(string $base_path): void {
     $this->base_path = rtrim($base_path, "/");
+  }
+
+  public function setLogger(Logger $logger): void {
+    $this->logger = $logger;
   }
 
   public function dispatch(callable $action_flow, array $arguments): array {
@@ -40,7 +47,10 @@ class Dispatcher {
   }
 
   protected function handleRuntimeException(\RuntimeException $exception): array {
-    throw $exception;
+    if ($this->logger) {
+      $this->logger->error((string)$exception);
+    }
+    return $this->handleServiceUnavailable();
   }
 
   protected function makeResponseFunctions(): void {
