@@ -13,6 +13,8 @@ class Controller {
   public $request;
   /** @var Response */
   public $response;
+  /** @var string */
+  private $base_path;
   public $request_rewriter;
   /** @var array */
   public $request_rewrite_rules;
@@ -30,7 +32,12 @@ class Controller {
     $this->routing_map = [];
     $this->request_index = "request";
     $this->response_index = "response";
+    $this->base_path = "";
  }
+
+  public function setBasePath(string $base_path) {
+    $this->base_path = rtrim($base_path, "/");
+  }
 
   public function __invoke(array $arguments): array {
     $request = $this->makeRequest();
@@ -69,7 +76,19 @@ class Controller {
   }
 
   protected function makeRequest(): Request {
-    return $this->request ?: \Laminas\Diactoros\ServerRequestFactory::fromGlobals();
+    if ($this->request) {
+      return $this->request;
+    }
+    $request = \Laminas\Diactoros\ServerRequestFactory::fromGlobals();
+    // remove base path
+    $uri = $request->getUri();
+    $path = $uri->getPath();
+    $base_path_length = strlen($this->base_path);
+    if (substr($path, 0, $base_path_length) != $this->base_path) {
+      throw new \DomainException("Requested path '$path' is not under base path '$this->base_path'");
+    }
+    $path = substr($path, $base_path_length);
+    return $request->withUri($uri->withPath($path));
   }
 
   protected function makeResponse(): Response {
@@ -89,7 +108,12 @@ class Controller {
   }
 
   protected function makeDispatcher() {
-    return $this->dispatcher ?: new Controller\Dispatcher($this->response_index);
+    if ($this->dispatcher) {
+      return $this->dispatcher;
+    }
+    $dispatcher = new Controller\Dispatcher($this->response_index);
+    $dispatcher->setBasePath($this->base_path);
+    return $dispatcher;
   }
 
   protected function makeResponseEmitter() {

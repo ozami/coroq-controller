@@ -8,9 +8,16 @@ class Dispatcher {
   protected $response_index;
   /** @var array */
   protected $arguments;
+  /** @var string */
+  protected $base_path;
 
   public function __construct(string $response_index = "response") {
     $this->response_index = $response_index;
+    $this->base_path = "";
+  }
+
+  public function setBasePath(string $base_path): void {
+    $this->base_path = rtrim($base_path, "/");
   }
 
   public function dispatch(callable $action_flow, array $arguments): array {
@@ -94,7 +101,8 @@ class Dispatcher {
     return json_encode($data, JSON_UNESCAPED_UNICODE);
   }
 
-  protected function handleFound($url, array $query = [], $fragment = null): array {
+  protected function handleFound(string $url, array $query = [], $fragment = null): array {
+    $url = $this->prependBasePath($url);
     if ($query) {
       $url .= "?" . http_build_query($query);
     }
@@ -122,5 +130,12 @@ class Dispatcher {
     $response = $this->getResponse();
     $response = $response->withStatus(503);
     return $this->setResponse($response);
+  }
+
+  protected function prependBasePath(string $path): string {
+    if (substr($path, 0, 1) != "/") {
+      return $path;
+    }
+    return $this->base_path . $path;
   }
 }
