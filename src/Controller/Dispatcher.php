@@ -11,7 +11,7 @@ class Dispatcher {
   protected $arguments;
   /** @var string */
   protected $base_path;
-  /** @var Logger */
+  /** @var ?Logger */
   protected $logger;
 
   public function __construct(string $response_index = "response") {
@@ -23,7 +23,7 @@ class Dispatcher {
     $this->base_path = rtrim($base_path, "/");
   }
 
-  public function setLogger(Logger $logger): void {
+  public function setLogger(?Logger $logger): void {
     $this->logger = $logger;
   }
 
