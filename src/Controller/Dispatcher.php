@@ -60,6 +60,9 @@ class Dispatcher {
     $okJson = function($data): array {
       return $this->handleOkJson($data);
     };
+    $okDownload = function(StreamInterface $body, $content_type, $file_name = null): array {
+      return $this->handleOkDownload($body, $content_type, $file_name);
+    };
     $found = function($url, array $query = [], $fragment = null): array {
       return $this->handleFound($url, $query, $fragment);
     };
@@ -75,6 +78,7 @@ class Dispatcher {
     $this->arguments += compact(
       "ok",
       "okJson",
+      "okDownload",
       "found",
       "notFound",
       "forbidden",
@@ -109,6 +113,19 @@ class Dispatcher {
 
   protected function encodeJsonBody($data): string {
     return json_encode($data, JSON_UNESCAPED_UNICODE);
+  }
+
+  protected function handleOkDownload(StreamInterface $body, $content_type, $file_name = null): array {
+    $response = $this->getResponse();
+    $response = $response->withStatus(200);
+    $response = $response->withHeader("Content-Type", $content_type);
+    $disposition_header = "attachment;";
+    if ($file_name !== null) {
+      $disposition_header .= "filename='$file_name';filename*=UTF-8''" . rawurlencode($file_name);
+    }
+    $response = $response->withHeader("Content-Disposition", $disposition_header);
+    $response = $response->withBody($body);
+    return $this->setResponse($response);
   }
 
   protected function handleFound(string $url, array $query = [], $fragment = null): array {
