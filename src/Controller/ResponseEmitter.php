@@ -10,6 +10,12 @@ class ResponseEmitter {
       }
     }
     http_response_code($response->getStatusCode());
-    echo $response->getBody();
+    $body = $response->getBody();
+    if ($body->isSeekable()) {
+      $body->rewind();
+    }
+    while (!$body->eof()) {
+      echo $body->read(1024 * 1024);
+    }
   }
 }
