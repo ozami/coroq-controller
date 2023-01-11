@@ -59,7 +59,7 @@ class Controller {
     $route = $router->route($request);
     $this->logDebug("Route", compact("route"));
     $action_flow_maker = $this->makeActionFlowMaker();
-    $action_flow = $action_flow_maker->make($route);
+    $action_flow = $action_flow_maker->make((array)$route);
     $arguments[$this->request_index] = $request;
     $arguments[$this->response_index] = $this->makeResponse();
     $dispatcher = $this->makeDispatcher();

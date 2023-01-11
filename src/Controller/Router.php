@@ -10,7 +10,7 @@ class Router {
     $this->map = $map;
   }
 
-  public function route(Request $request): array {
+  public function route(Request $request): ?array {
     $waypoints = $this->getWaypoints($request);
     return $this->routeHelper([], $waypoints, $this->map, "");
   }
@@ -21,10 +21,16 @@ class Router {
     return $waypoints;
   }
 
-  protected function routeHelper(array $route, array $waypoints, array $map, string $default_class_name): array {
-    $next_waypoint = @$waypoints[0];
+  /**
+   * @return ?array null if no route found.
+   */
+  protected function routeHelper(array $route, array $waypoints, array $map, string $default_class_name): ?array {
+    $current_waypoint = array_shift($waypoints);
+    if ($current_waypoint === null) {
+      $current_waypoint = "";
+    }
     foreach ($map as $map_index => $map_item) {
-      if (preg_match('#^\d+$#', "$map_index")) {
+      if (is_int($map_index)) {
         if ($map_item == "*") {
           return $route;
         }
@@ -35,23 +41,33 @@ class Router {
         $route[] = $this->resolveDefaultClassName($default_class_name, $map_item);
         continue;
       }
-      if (preg_match("|^[/#]|", "$map_index")) {
-        if (preg_match($map_index, $next_waypoint)) {
-          return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item, $default_class_name);
+      if ($this->doesWaypointMatchToMapIndex($current_waypoint, $map_index)) {
+        if (is_array($map_item)) {
+          $found_route = $this->routeHelper($route, $waypoints, $map_item, $default_class_name);
+          if ($found_route === null) {
+            continue;
+          }
+          return $found_route;
         }
-        continue;
-      }
-      if ($map_index == $next_waypoint) {
+        if ($waypoints) {
+          return null;
+        }
         if (is_string($map_item) && preg_match('#::$#', $map_item)) {
           $map_item .= $map_index;
         }
-        return $this->routeHelper($route, array_slice($waypoints, 1), (array)$map_item, $default_class_name);
+        $route[] = $this->resolveDefaultClassName($default_class_name, $map_item);
+        return $route;
       }
     }
-    if ($waypoints) {
-      return [];
+    return null;
+  }
+
+  private function doesWaypointMatchToMapIndex(string $waypoint, string $map_index): bool {
+    // if $map_index is a regular expression
+    if (preg_match("|^[/#]|", "$map_index") && preg_match($map_index, $waypoint)) {
+      return true;
     }
-    return $route;
+    return $map_index === $waypoint;
   }
 
   protected function resolveDefaultClassName($default_class_name, $map_item) {

@@ -27,10 +27,66 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
     $this->assertEquals(["first", "root"], $result);
   }
 
+  public function testCatchAllOnly() {
+    $router = new Router(["*"]);
+    $result = $router->route($this->makeRequest("/not_exists"));
+    $this->assertEquals([], $result);
+  }
+
+  public function testCatchAllAfterSomeRoute() {
+    $router = new Router(["first", "*"]);
+    $result = $router->route($this->makeRequest("/not_exists"));
+    $this->assertEquals(["first"], $result);
+  }
+
+  public function testCatchAllAfterDigging() {
+    $router = new Router([
+      "first" => [
+        "*",
+      ],
+    ]);
+    $result = $router->route($this->makeRequest("/first"));
+    $this->assertEquals([], $result);
+  }
+
+  public function testCatchAllAfterDiggingAndSomeRoute() {
+    $router = new Router([
+      "first" => [
+        "second",
+        "*",
+      ],
+    ]);
+    $result = $router->route($this->makeRequest("/first"));
+    $this->assertEquals(["second"], $result);
+  }
+
+  public function testCatchAllAfterDiggingAndDeadEnd() {
+    $router = new Router([
+      "first" => [
+        "second",
+      ],
+      "*",
+    ]);
+    $result = $router->route($this->makeRequest("/first"));
+    $this->assertEquals([], $result);
+  }
+
+  public function testCatchAllAfterDiggingAndDeadEndAndSomeRoute() {
+    $router = new Router([
+      "first" => [
+        "second",
+      ],
+      "third",
+      "*",
+    ]);
+    $result = $router->route($this->makeRequest("/first"));
+    $this->assertEquals(["third"], $result);
+  }
+
   public function testDeadEnd() {
     $router = new Router(["first", "" => "root", "last"]);
     $result = $router->route($this->makeRequest("/not_exists"));
-    $this->assertEquals([], $result);
+    $this->assertEquals(null, $result);
   }
 
   public function testDeepMap() {
@@ -90,7 +146,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
       "out",
     ]);
     $result = $router->route($this->makeRequest("leaf/of/the/tall/tree"));
-    $this->assertEquals([], $result);
+    $this->assertEquals(null, $result);
   }
 
   public function testDefaultClassName() {
