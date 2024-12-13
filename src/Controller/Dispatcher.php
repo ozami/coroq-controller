@@ -137,7 +137,7 @@ class Dispatcher {
       $url .= "#$fragment";
     }
     $response = $this->getResponse();
-    $response = $response->withStatus(301)->withHeader("Location", $url);
+    $response = $response->withStatus(302)->withHeader("Location", $url);
     return $this->setResponse($response);
   }
 
